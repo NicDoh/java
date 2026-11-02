@@ -3,8 +3,20 @@ package com.example;
 import java.io.IOException;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class MainMenuController {
+
+    @FXML
+    private ImageView backgroundImage;
+
+    private final GameModel model = GameModel.getInstance();
+
+    @FXML
+    private void initialize() {
+        backgroundImage.setImage(new Image(getClass().getResource(model.getBackground()).toExternalForm()));
+    }
 
     @FXML
     private void startGame() throws IOException {

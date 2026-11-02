@@ -2,11 +2,41 @@ package com.example;
 
 import java.io.IOException;
 import javafx.fxml.FXML;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class SettingsController {
 
     @FXML
-    private void switchToPrimary() throws IOException {
-        App.setRoot("primary");
+    private ImageView backgroundImage;
+
+    private final GameModel model = GameModel.getInstance();
+
+    @FXML
+    private void selectBg1() {
+        model.setBackground("bg1.png");
+        backgroundImage.setImage(new Image(getClass().getResource("bg1.png").toExternalForm()));
+    }
+
+    @FXML
+    private void selectBg2() {
+        model.setBackground("bg2.png");
+        backgroundImage.setImage(new Image(getClass().getResource("bg2.png").toExternalForm()));
+    }
+
+    @FXML
+    private void selectBg3() {
+        model.setBackground("bg3.png");
+        backgroundImage.setImage(new Image(getClass().getResource("bg3.png").toExternalForm()));
+    }
+
+    @FXML
+    private void goBack() throws IOException {
+        App.setRoot("mainmenu");
+    }
+
+    @FXML
+    private void initialize() {
+        backgroundImage.setImage(new Image(getClass().getResource(model.getBackground()).toExternalForm()));
     }
 }
