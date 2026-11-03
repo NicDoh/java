@@ -1,4 +1,7 @@
+com/example/GameController.class
 com/example/App.class
-module-info.class
+com/example/GameModel.class
 com/example/MainMenuController.class
 com/example/SettingsController.class
+module-info.class
+com/example/ChatController.class
