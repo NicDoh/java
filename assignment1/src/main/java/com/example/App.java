@@ -8,9 +8,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-/**
- * JavaFX App
- */
 public class App extends Application {
 
     private static Scene scene;
@@ -22,6 +19,7 @@ public class App extends Application {
         stage.show();
     }
 
+    // bestemmer hvilken fxml-fil, der vises
     static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }

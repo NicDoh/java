@@ -25,8 +25,9 @@ public class ChatController {
 
     @FXML
     private void initialize() {
+        // henter den valgte baggrund fra GameModel
         backgroundImage.setImage(new Image(getClass().getResource(model.getBackground()).toExternalForm()));
-
+        // brugere til at simulere et chatrum
         ObservableList<String> users = FXCollections.observableArrayList("Lars", "Allan", "Baune", "Baunshøj");
         userList.setItems(users);
     }
@@ -35,7 +36,7 @@ public class ChatController {
     private void sendMessage() {
         String text = messageInput.getText().trim();
         if (!text.isEmpty()) {
-            messageArea.appendText("Du: " + text + "\n");
+            messageArea.appendText("You: " + text + "\n");
             messageInput.clear();
         }
     }

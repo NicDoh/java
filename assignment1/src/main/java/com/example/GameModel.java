@@ -3,7 +3,9 @@ package com.example;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+// GameModel gemmer applikationens tilstand på tværs af alle views (MVC)
 public class GameModel {
+    // Singleton - sikrer at alle controllers deler samme instans
     private static final GameModel instance = new GameModel();
     private final StringProperty background = new SimpleStringProperty("bg1.png");
     private final StringProperty arena = new SimpleStringProperty("Arena 1");

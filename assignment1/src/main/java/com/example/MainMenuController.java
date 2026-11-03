@@ -15,6 +15,7 @@ public class MainMenuController {
 
     @FXML
     private void initialize() {
+        // Henter den valgte baggrund fra GameModel når main menu loades
         backgroundImage.setImage(new Image(getClass().getResource(model.getBackground()).toExternalForm()));
     }
 

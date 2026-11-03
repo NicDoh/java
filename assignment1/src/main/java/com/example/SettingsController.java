@@ -14,11 +14,13 @@ public class SettingsController {
 
     @FXML
     private void initialize() {
+        // Henter den valgte baggrund fra GameModel når settings loades
         backgroundImage.setImage(new Image(getClass().getResource(model.getBackground()).toExternalForm()));
     }
 
     @FXML
     private void selectBg1() {
+        // Opdaterer baggrund i GameModel og viser den valgte baggrund
         model.setBackground("bg1.png");
         backgroundImage.setImage(new Image(getClass().getResource("bg1.png").toExternalForm()));
     }
@@ -37,6 +39,7 @@ public class SettingsController {
 
     @FXML
     private void selectArena1() {
+        // Gemmer valgt arena i GameModel
         model.setArena("Arena 1");
     }
 

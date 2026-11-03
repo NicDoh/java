@@ -24,7 +24,7 @@
             <TextField fx:id="messageInput" promptText="Enter message here..." HBox.hgrow="ALWAYS"/>
             <VBox spacing="5">
                 <Button text="Send" onAction="#sendMessage"/>
-                <Button text="Main menu" onAction="#goBack"/>
+                <Button text="Back" onAction="#goBack"/>
             </VBox>
         </HBox>
     </VBox>
