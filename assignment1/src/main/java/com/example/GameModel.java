@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 public class GameModel {
     private static final GameModel instance = new GameModel();
     private final StringProperty background = new SimpleStringProperty("bg1.png");
+    private final StringProperty arena = new SimpleStringProperty("Arena 1");
 
     private GameModel() {}
 
@@ -23,5 +24,17 @@ public class GameModel {
 
     public void setBackground(String bg) {
         background.set(bg);
+    }
+
+    public StringProperty arenaProperty() {
+        return arena;
+    }
+
+    public String getArena() {
+        return arena.get();
+    }
+
+    public void setArena(String arena) {
+        this.arena.set(arena);
     }
 }

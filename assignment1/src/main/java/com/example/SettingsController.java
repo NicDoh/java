@@ -13,6 +13,11 @@ public class SettingsController {
     private final GameModel model = GameModel.getInstance();
 
     @FXML
+    private void initialize() {
+        backgroundImage.setImage(new Image(getClass().getResource(model.getBackground()).toExternalForm()));
+    }
+
+    @FXML
     private void selectBg1() {
         model.setBackground("bg1.png");
         backgroundImage.setImage(new Image(getClass().getResource("bg1.png").toExternalForm()));
@@ -31,12 +36,22 @@ public class SettingsController {
     }
 
     @FXML
-    private void goBack() throws IOException {
-        App.setRoot("mainmenu");
+    private void selectArena1() {
+        model.setArena("Arena 1");
     }
 
     @FXML
-    private void initialize() {
-        backgroundImage.setImage(new Image(getClass().getResource(model.getBackground()).toExternalForm()));
+    private void selectArena2() {
+        model.setArena("Arena 2");
+    }
+
+    @FXML
+    private void selectArena3() {
+        model.setArena("Arena 3");
+    }
+
+    @FXML
+    private void goBack() throws IOException {
+        App.setRoot("mainmenu");
     }
 }
