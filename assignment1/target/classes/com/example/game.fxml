@@ -3,5 +3,5 @@
 <?import javafx.scene.control.Button?>
 
 <StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.GameController">
-    <Button text="Tilbage" onAction="#goBack"/>
+    <Button text="Back" onAction="#goBack"/>
 </StackPane>
