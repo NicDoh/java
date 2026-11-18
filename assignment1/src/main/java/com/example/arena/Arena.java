@@ -15,9 +15,10 @@ public class Arena {
     private final Entity[][] grid;
     private final int rows;
     private final int cols;
+    private Image floorImg;
 
     public Arena(String mapResource) {
-        Image floorImg = new Image(getClass().getResourceAsStream("/com/example/assets/terrain/grass.png"));
+        floorImg   = new Image(getClass().getResourceAsStream("/com/example/assets/terrain/grass.png"));
         Image wallImg  = new Image(getClass().getResourceAsStream("/com/example/assets/terrain/wall.png"));
         Image crateImg = new Image(getClass().getResourceAsStream("/com/example/assets/terrain/crate.png"));
 
@@ -54,9 +55,15 @@ public class Arena {
     public Entity[][] getGrid() { return grid; }
 
     public void update(double dt) {
-        for (Entity[] row : grid)
-            for (Entity e : row)
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                Entity e = grid[row][col];
+                if (e instanceof DestructibleWall dw && dw.isDestroyed()) {
+                    grid[row][col] = new Floor(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE, floorImg);
+                }
                 e.update(dt);
+            }
+        }
     }
 
     public void render(GraphicsContext gc) {

@@ -2,24 +2,28 @@ package com.example.game;
 
 import com.example.App;
 import com.example.arena.Arena;
-import com.example.entities.Player;
+import com.example.entities.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 
 public class GameController {
 
-    @FXML
-    private StackPane root;
+    @FXML private StackPane root;
 
     private GameView gameView;
     private Arena arena;
     private AnimationTimer gameLoop;
     private Player player1;
     private Player player2;
+    private final List<Bomb> bombs = new ArrayList<>();
+    private final List<Explosion> explosions = new ArrayList<>();
+    private Image bombImg;
+    private Image explosionImg;
 
     @FXML
     private void initialize() {
@@ -37,6 +41,9 @@ public class GameController {
 
         gameView = new GameView(canvasW, canvasH);
         root.getChildren().add(gameView);
+
+        bombImg     = new Image(getClass().getResourceAsStream("/com/example/assets/bombs/bomb_0.png"));
+        explosionImg = new Image(getClass().getResourceAsStream("/com/example/assets/explosions/explosion_3.png"));
 
         initPlayers();
         initKeyBindings();
@@ -87,6 +94,60 @@ public class GameController {
         });
     }
 
+    private void tryPlaceBomb(Player player) {
+        if (!player.isPlacingBomb() || !player.canPlaceBomb()) return;
+        int col = (int)((player.getPositionX() + player.getWidth() / 2) / Arena.TILE_SIZE);
+        int row = (int)((player.getPositionY() + player.getHeight() / 2) / Arena.TILE_SIZE);
+        double bx = col * Arena.TILE_SIZE;
+        double by = row * Arena.TILE_SIZE;
+        for (Bomb b : bombs) {
+            if (b.getPositionX() == bx && b.getPositionY() == by) return;
+        }
+        bombs.add(new Bomb(bx, by, Arena.TILE_SIZE, bombImg, player, player.getExplosionRange()));
+        player.incrementActiveBombs();
+        player.setPlacingBomb(false);
+    }
+
+    private void createExplosions(Bomb bomb) {
+        int col = (int)(bomb.getPositionX() / Arena.TILE_SIZE);
+        int row = (int)(bomb.getPositionY() / Arena.TILE_SIZE);
+        explosions.add(new Explosion(bomb.getPositionX(), bomb.getPositionY(), Arena.TILE_SIZE, explosionImg));
+
+        int[] dx = {1, -1, 0, 0};
+        int[] dy = {0, 0, -1, 1};
+
+        for (int dir = 0; dir < 4; dir++) {
+            for (int i = 1; i <= bomb.getRange(); i++) {
+                int nc = col + dx[dir] * i;
+                int nr = row + dy[dir] * i;
+                if (nc < 0 || nc >= arena.getCols() || nr < 0 || nr >= arena.getRows()) break;
+
+                Entity tile = arena.getEntity(nc, nr);
+                if (tile instanceof IndestructibleWall) break;
+
+                Explosion exp = new Explosion(nc * Arena.TILE_SIZE, nr * Arena.TILE_SIZE, Arena.TILE_SIZE, explosionImg);
+                explosions.add(exp);
+
+                if (tile instanceof DestructibleWall) {
+                    tile.interact(exp);
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean collidesWithArena(Player player) {
+        Entity[][] grid = arena.getGrid();
+        for (int row = 0; row < arena.getRows(); row++)
+            for (int col = 0; col < arena.getCols(); col++) {
+                Entity tile = grid[row][col];
+                if (tile.isOccupying() && CollisionDetection.aabb(player, tile)) return true;
+            }
+        for (Bomb bomb : bombs)
+            if (bomb.isOccupying() && CollisionDetection.aabb(player, bomb)) return true;
+        return false;
+    }
+
     private void startGameLoop() {
         gameLoop = new AnimationTimer() {
             long lastTime = -1;
@@ -96,14 +157,64 @@ public class GameController {
                 double dt = (currentTime - lastTime) / 1_000_000.0;
                 lastTime = currentTime;
 
+                // Opdater bombs, collect newly exploded
+                List<Bomb> toExplode = new ArrayList<>();
+                for (Bomb bomb : bombs) {
+                    bomb.update(dt);
+                    if (bomb.isExploded()) toExplode.add(bomb);
+                }
+                for (Bomb bomb : toExplode) {
+                    createExplosions(bomb);
+                    bomb.getOwner().decrementActiveBombs();
+                }
+                bombs.removeAll(toExplode);
+
+                // Opdater explosions
+                for (Explosion exp : explosions) exp.update(dt);
+
+                // Process explosion interactions
+                for (Explosion exp : explosions) {
+                    if (CollisionDetection.aabb(exp, player1)) exp.interact(player1);
+                    if (CollisionDetection.aabb(exp, player2)) exp.interact(player2);
+                    for (Bomb bomb : bombs)
+                        if (CollisionDetection.aabb(exp, bomb)) exp.interact(bomb);
+                }
+                explosions.removeIf(Explosion::isExpired);
+
+                // Opdater arena og players
                 arena.update(dt);
+
+                double p1x = player1.getPositionX();
+                player1.moveX(dt);
+                if (collidesWithArena(player1) || CollisionDetection.aabb(player1, player2)) player1.setX(p1x);
+
+                double p1y = player1.getPositionY();
+                player1.moveY(dt);
+                if (collidesWithArena(player1) || CollisionDetection.aabb(player1, player2)) player1.setY(p1y);
+
                 player1.update(dt);
+
+                double p2x = player2.getPositionX();
+                player2.moveX(dt);
+                if (collidesWithArena(player2) || CollisionDetection.aabb(player2, player1)) player2.setX(p2x);
+
+                double p2y = player2.getPositionY();
+                player2.moveY(dt);
+                if (collidesWithArena(player2) || CollisionDetection.aabb(player2, player1)) player2.setY(p2y);
+
                 player2.update(dt);
 
+                tryPlaceBomb(player1);
+                tryPlaceBomb(player2);
+
+                // Render
                 gameView.clear();
                 arena.render(gameView.getGraphicsContext());
+                for (Bomb bomb : bombs) bomb.render(gameView.getGraphicsContext());
+                for (Explosion exp : explosions) exp.render(gameView.getGraphicsContext());
                 player1.render(gameView.getGraphicsContext());
                 player2.render(gameView.getGraphicsContext());
+                renderHUD(gameView.getGraphicsContext());
             }
         };
         gameLoop.start();
@@ -112,5 +223,18 @@ public class GameController {
     public void goBack() throws IOException {
         gameLoop.stop();
         App.setRoot("mainmenu");
+    }
+
+    private void renderHUD(javafx.scene.canvas.GraphicsContext gc) {
+        gc.setFill(new javafx.scene.paint.Color(0, 0, 0, 0.5));
+        gc.fillRect(0, 0, arena.getCols() * Arena.TILE_SIZE, 26);
+
+        gc.setFont(javafx.scene.text.Font.font(18));
+
+        gc.setFill(javafx.scene.paint.Color.CORNFLOWERBLUE);
+        gc.fillText("P1 liv: " + player1.getLives(), 5, 20);
+
+        gc.setFill(javafx.scene.paint.Color.TOMATO);
+        gc.fillText("P2 liv: " + player2.getLives(), arena.getCols() * Arena.TILE_SIZE - 85, 20);
     }
 }

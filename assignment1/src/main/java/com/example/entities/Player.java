@@ -14,6 +14,9 @@ public class Player extends Entity {
     private boolean placingBomb;
     // Forhindrer at spilleren mister flere liv fra samme eksplosion
     private boolean hitThisFrame;
+    private int explosionRange = 2;
+    public int getExplosionRange() { return explosionRange; }
+    public void increaseExplosionRange() { explosionRange++; }
 
     public Player(double x, double y, double width, double height, Image image, int lives, int maxBombs, double speed) {
         super(x, y, width, height, image);
@@ -29,17 +32,22 @@ public class Player extends Entity {
     }
 
     @Override
-    public void interact(Entity entity) {}
+    public void interact(Entity entity) {
+        if (entity instanceof Explosion) loseLife();
+    }
+
+    public void moveX(double dt) {
+        if (movingLeft)  x -= speed * dt;
+        if (movingRight) x += speed * dt;
+    }
+
+    public void moveY(double dt) {
+        if (movingUp)   y -= speed * dt;
+        if (movingDown) y += speed * dt;
+    }
 
     @Override
     public void update(double dt) {
-        double vx = 0, vy = 0;
-        if (movingUp) vy = -speed;
-        if (movingDown) vy = speed;
-        if (movingLeft) vx = -speed;
-        if (movingRight) vx = speed;
-        x += vx * dt;
-        y += vy * dt;
         hitThisFrame = false;
     }
 

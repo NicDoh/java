@@ -27,7 +27,7 @@ public class DestructibleWall extends Entity {
 
     @Override
     public void interact(Entity entity) {
-        // Explosion håndteres når Explosion-klassen er lavet
+        if (entity instanceof Explosion) destroy();
     }
 
     @Override

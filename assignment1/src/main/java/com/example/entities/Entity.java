@@ -30,4 +30,7 @@ public abstract class Entity {
     public abstract void update(double dt);
     // Tegner entity på canvas
     public abstract void render(GraphicsContext gc);
+
+    public void setX(double x) { this.x = x; }
+    public void setY(double y) { this.y = y; }
 }
