@@ -1,6 +1,9 @@
 package com.example;
 
 import java.io.IOException;
+
+import com.example.game.GameModel;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;

@@ -1,4 +1,4 @@
-package com.example;
+package com.example.game;
 
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;

@@ -20,7 +20,7 @@ public class App extends Application {
     }
 
     // bestemmer hvilken fxml-fil, der vises
-    static void setRoot(String fxml) throws IOException {
+    public static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }
 
