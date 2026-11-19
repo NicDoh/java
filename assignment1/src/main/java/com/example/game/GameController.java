@@ -22,8 +22,13 @@ public class GameController {
     private Player player2;
     private final List<Bomb> bombs = new ArrayList<>();
     private final List<Explosion> explosions = new ArrayList<>();
+    private final List<PowerUp> powerUps = new ArrayList<>();
     private Image bombImg;
     private Image explosionImg;
+    private Image capacityImg;
+    private Image rangeImg;
+    private Image speedImg;
+    private Image lifeImg;
 
     @FXML
     private void initialize() {
@@ -42,8 +47,13 @@ public class GameController {
         gameView = new GameView(canvasW, canvasH);
         root.getChildren().add(gameView);
 
-        bombImg     = new Image(getClass().getResourceAsStream("/com/example/assets/bombs/bomb_0.png"));
+        // Indlæs billeder til bombe, eksplosion og powerups
+        bombImg      = new Image(getClass().getResourceAsStream("/com/example/assets/bombs/bomb_0.png"));
         explosionImg = new Image(getClass().getResourceAsStream("/com/example/assets/explosions/explosion_3.png"));
+        capacityImg  = new Image(getClass().getResourceAsStream("/com/example/assets/powerups/capacity.png"));
+        rangeImg     = new Image(getClass().getResourceAsStream("/com/example/assets/powerups/range.png"));
+        speedImg     = new Image(getClass().getResourceAsStream("/com/example/assets/powerups/speed.png"));
+        lifeImg      = new Image(getClass().getResourceAsStream("/com/example/assets/powerups/life.png"));
 
         initPlayers();
         initKeyBindings();
@@ -52,17 +62,20 @@ public class GameController {
     }
 
     private void initPlayers() {
+        // Spillere er lidt mindre end en tile så de kan navigere i korridorer
         double playerSize = Arena.TILE_SIZE * 0.8;
         double offset = (Arena.TILE_SIZE - playerSize) / 2;
 
         Image img1 = new Image(getClass().getResourceAsStream("/com/example/assets/players/blue_down_0.png"));
         Image img2 = new Image(getClass().getResourceAsStream("/com/example/assets/players/red_down_0.png"));
 
+        // P1 starter øverst til venstre, P2 nederst til højre
         player1 = new Player(Arena.TILE_SIZE + offset, Arena.TILE_SIZE + offset, playerSize, playerSize, img1, 3, 1, 0.1);
         player2 = new Player(13 * Arena.TILE_SIZE + offset, 9 * Arena.TILE_SIZE + offset, playerSize, playerSize, img2, 3, 1, 0.1);
     }
 
     private void initKeyBindings() {
+        // P1: WASD + Mellemrum | P2: IJKL + Enter
         gameView.getCanvas().setOnKeyPressed(evt -> {
             switch (evt.getCode()) {
                 case W -> player1.setMovingUp(true);
@@ -96,13 +109,18 @@ public class GameController {
 
     private void tryPlaceBomb(Player player) {
         if (!player.isPlacingBomb() || !player.canPlaceBomb()) return;
+
+        // Placér bombe på den tile spillerens centrum befinder sig på
         int col = (int)((player.getPositionX() + player.getWidth() / 2) / Arena.TILE_SIZE);
         int row = (int)((player.getPositionY() + player.getHeight() / 2) / Arena.TILE_SIZE);
         double bx = col * Arena.TILE_SIZE;
         double by = row * Arena.TILE_SIZE;
+
+        // Kun én bombe per tile ad gangen
         for (Bomb b : bombs) {
             if (b.getPositionX() == bx && b.getPositionY() == by) return;
         }
+
         bombs.add(new Bomb(bx, by, Arena.TILE_SIZE, bombImg, player, player.getExplosionRange()));
         player.incrementActiveBombs();
         player.setPlacingBomb(false);
@@ -111,11 +129,14 @@ public class GameController {
     private void createExplosions(Bomb bomb) {
         int col = (int)(bomb.getPositionX() / Arena.TILE_SIZE);
         int row = (int)(bomb.getPositionY() / Arena.TILE_SIZE);
+
+        // Eksplosion på bombens egen tile
         explosions.add(new Explosion(bomb.getPositionX(), bomb.getPositionY(), Arena.TILE_SIZE, explosionImg));
 
         int[] dx = {1, -1, 0, 0};
         int[] dy = {0, 0, -1, 1};
 
+        // Spred eksplosionen i fire retninger
         for (int dir = 0; dir < 4; dir++) {
             for (int i = 1; i <= bomb.getRange(); i++) {
                 int nc = col + dx[dir] * i;
@@ -130,6 +151,17 @@ public class GameController {
 
                 if (tile instanceof DestructibleWall) {
                     tile.interact(exp);
+                    // 40% chance for at en powerup spawner bag den ødelagte kasse
+                    if (Math.random() < 0.4) {
+                        int type = (int)(Math.random() * 4);
+                        PowerUp pu = switch (type) {
+                            case 0 -> new CapacityPowerUp(nc * Arena.TILE_SIZE, nr * Arena.TILE_SIZE, Arena.TILE_SIZE, capacityImg);
+                            case 1 -> new RangePowerUp(nc * Arena.TILE_SIZE, nr * Arena.TILE_SIZE, Arena.TILE_SIZE, rangeImg);
+                            case 2 -> new SpeedPowerUp(nc * Arena.TILE_SIZE, nr * Arena.TILE_SIZE, Arena.TILE_SIZE, speedImg);
+                            default -> new LifePowerUp(nc * Arena.TILE_SIZE, nr * Arena.TILE_SIZE, Arena.TILE_SIZE, lifeImg);
+                        };
+                        powerUps.add(pu);
+                    }
                     break;
                 }
             }
@@ -137,12 +169,14 @@ public class GameController {
     }
 
     private boolean collidesWithArena(Player player) {
+        // Tjek kollision med vægge og kasser i arenaen
         Entity[][] grid = arena.getGrid();
         for (int row = 0; row < arena.getRows(); row++)
             for (int col = 0; col < arena.getCols(); col++) {
                 Entity tile = grid[row][col];
                 if (tile.isOccupying() && CollisionDetection.aabb(player, tile)) return true;
             }
+        // Tjek kollision med aktive bomber
         for (Bomb bomb : bombs)
             if (bomb.isOccupying() && CollisionDetection.aabb(player, bomb)) return true;
         return false;
@@ -157,7 +191,7 @@ public class GameController {
                 double dt = (currentTime - lastTime) / 1_000_000.0;
                 lastTime = currentTime;
 
-                // Opdater bombs, collect newly exploded
+                // Opdater bomber og find dem der skal eksplodere
                 List<Bomb> toExplode = new ArrayList<>();
                 for (Bomb bomb : bombs) {
                     bomb.update(dt);
@@ -169,10 +203,10 @@ public class GameController {
                 }
                 bombs.removeAll(toExplode);
 
-                // Opdater explosions
+                // Opdater eksplosioner
                 for (Explosion exp : explosions) exp.update(dt);
 
-                // Process explosion interactions
+                // Eksplosioner interagerer med spillere og bomber
                 for (Explosion exp : explosions) {
                     if (CollisionDetection.aabb(exp, player1)) exp.interact(player1);
                     if (CollisionDetection.aabb(exp, player2)) exp.interact(player2);
@@ -181,23 +215,27 @@ public class GameController {
                 }
                 explosions.removeIf(Explosion::isExpired);
 
-                // Opdater arena og players
+                // Opdater arena (erstatter ødelagte kasser med gulv)
                 arena.update(dt);
 
+                // Flyt P1 på X-aksen, fortryd hvis kollision
                 double p1x = player1.getPositionX();
                 player1.moveX(dt);
                 if (collidesWithArena(player1) || CollisionDetection.aabb(player1, player2)) player1.setX(p1x);
 
+                // Flyt P1 på Y-aksen, fortryd hvis kollision
                 double p1y = player1.getPositionY();
                 player1.moveY(dt);
                 if (collidesWithArena(player1) || CollisionDetection.aabb(player1, player2)) player1.setY(p1y);
 
                 player1.update(dt);
 
+                // Flyt P2 på X-aksen, fortryd hvis kollision
                 double p2x = player2.getPositionX();
                 player2.moveX(dt);
                 if (collidesWithArena(player2) || CollisionDetection.aabb(player2, player1)) player2.setX(p2x);
 
+                // Flyt P2 på Y-aksen, fortryd hvis kollision
                 double p2y = player2.getPositionY();
                 player2.moveY(dt);
                 if (collidesWithArena(player2) || CollisionDetection.aabb(player2, player1)) player2.setY(p2y);
@@ -207,9 +245,17 @@ public class GameController {
                 tryPlaceBomb(player1);
                 tryPlaceBomb(player2);
 
-                // Render
+                // Spillere samler powerups op ved at gå hen på dem
+                for (PowerUp pu : powerUps) {
+                    if (CollisionDetection.aabb(player1, pu)) pu.interact(player1);
+                    if (CollisionDetection.aabb(player2, pu)) pu.interact(player2);
+                }
+                powerUps.removeIf(PowerUp::isCollected);
+
+                // Tegn alt på canvas
                 gameView.clear();
                 arena.render(gameView.getGraphicsContext());
+                for (PowerUp pu : powerUps) pu.render(gameView.getGraphicsContext());
                 for (Bomb bomb : bombs) bomb.render(gameView.getGraphicsContext());
                 for (Explosion exp : explosions) exp.render(gameView.getGraphicsContext());
                 player1.render(gameView.getGraphicsContext());
@@ -226,6 +272,7 @@ public class GameController {
     }
 
     private void renderHUD(javafx.scene.canvas.GraphicsContext gc) {
+        // Semi-transparent sort bjælke øverst
         gc.setFill(new javafx.scene.paint.Color(0, 0, 0, 0.5));
         gc.fillRect(0, 0, arena.getCols() * Arena.TILE_SIZE, 26);
 

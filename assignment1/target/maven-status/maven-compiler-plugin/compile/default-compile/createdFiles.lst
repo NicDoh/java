@@ -1,6 +1,7 @@
 com/example/App.class
 com/example/SettingsController.class
 com/example/game/CollisionDetection.class
+com/example/entities/PowerUp.class
 com/example/entities/Explosion.class
 module-info.class
 com/example/game/GameController$1.class
@@ -12,8 +13,12 @@ com/example/game/GameView.class
 com/example/entities/Entity.class
 com/example/MainMenuController.class
 com/example/game/GameController$2.class
+com/example/entities/SpeedPowerUp.class
 com/example/arena/Arena.class
+com/example/entities/RangePowerUp.class
 com/example/game/GameController.class
 com/example/entities/Bomb.class
 com/example/entities/Floor.class
+com/example/entities/CapacityPowerUp.class
+com/example/entities/LifePowerUp.class
 com/example/entities/IndestructibleWall.class
