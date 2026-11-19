@@ -2,7 +2,6 @@ package com.example.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import java.util.HashSet;
 import java.util.Set;
 
 public class Explosion extends Entity {
@@ -10,11 +9,13 @@ public class Explosion extends Entity {
 
     private double timer;
     private boolean expired;
-    private final Set<Entity> alreadyHit = new HashSet<>();
+    // Deles mellem alle eksplosioner fra samme bombe
+    private final Set<Entity> alreadyHit;
 
-    public Explosion(double x, double y, double size, Image image) {
+    public Explosion(double x, double y, double size, Image image, Set<Entity> alreadyHit) {
         super(x, y, size, size, image);
         this.timer = DURATION;
+        this.alreadyHit = alreadyHit;
     }
 
     @Override

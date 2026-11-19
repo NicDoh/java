@@ -5,7 +5,9 @@ import com.example.arena.Arena;
 import com.example.entities.*;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.image.Image;
@@ -130,8 +132,11 @@ public class GameController {
         int col = (int)(bomb.getPositionX() / Arena.TILE_SIZE);
         int row = (int)(bomb.getPositionY() / Arena.TILE_SIZE);
 
+        // Alle eksplosioner fra samme bombe deler én alreadyHit-liste
+        Set<Entity> alreadyHit = new HashSet<>();
+
         // Eksplosion på bombens egen tile
-        explosions.add(new Explosion(bomb.getPositionX(), bomb.getPositionY(), Arena.TILE_SIZE, explosionImg));
+        explosions.add(new Explosion(bomb.getPositionX(), bomb.getPositionY(), Arena.TILE_SIZE, explosionImg, alreadyHit));
 
         int[] dx = {1, -1, 0, 0};
         int[] dy = {0, 0, -1, 1};
@@ -146,7 +151,7 @@ public class GameController {
                 Entity tile = arena.getEntity(nc, nr);
                 if (tile instanceof IndestructibleWall) break;
 
-                Explosion exp = new Explosion(nc * Arena.TILE_SIZE, nr * Arena.TILE_SIZE, Arena.TILE_SIZE, explosionImg);
+                Explosion exp = new Explosion(nc * Arena.TILE_SIZE, nr * Arena.TILE_SIZE, Arena.TILE_SIZE, explosionImg, alreadyHit);
                 explosions.add(exp);
 
                 if (tile instanceof DestructibleWall) {
@@ -180,6 +185,53 @@ public class GameController {
         for (Bomb bomb : bombs)
             if (bomb.isOccupying() && CollisionDetection.aabb(player, bomb)) return true;
         return false;
+    }
+
+    private void checkWinCondition() {
+        boolean p1Dead = player1.isDead();
+        boolean p2Dead = player2.isDead();
+
+        if (p1Dead || p2Dead) {
+            gameLoop.stop();
+            String message = (p1Dead && p2Dead) ? "Draw!"
+                           : p1Dead             ? "Player 2 wins!"
+                                                : "Player 1 wins!";
+            showEndScreen(message);
+        }
+    }
+
+    private void showEndScreen(String message) {
+        javafx.scene.canvas.GraphicsContext gc = gameView.getGraphicsContext();
+
+        // Mørkt overlay henover spillet
+        gc.setFill(new javafx.scene.paint.Color(0, 0, 0, 0.6));
+        gc.fillRect(0, 0, gameView.getCanvas().getWidth(), gameView.getCanvas().getHeight());
+
+        // Vinder-tekst centreret på skærmen
+        gc.setFill(javafx.scene.paint.Color.WHITE);
+        gc.setFont(javafx.scene.text.Font.font(48));
+        gc.fillText(message, gameView.getCanvas().getWidth() / 2 - 120, gameView.getCanvas().getHeight() / 2);
+
+        // Knapper til at spille igen eller gå til hovedmenu
+        javafx.scene.control.Button playAgain = new javafx.scene.control.Button("Play again");
+        javafx.scene.control.Button backBtn   = new javafx.scene.control.Button("Main menu");
+
+        playAgain.setOnAction(e -> {
+            root.getChildren().clear();
+            bombs.clear();
+            explosions.clear();
+            powerUps.clear();
+            initialize();
+        });
+        backBtn.setOnAction(e -> {
+            try { App.setRoot("mainmenu"); } catch (IOException ex) { ex.printStackTrace(); }
+        });
+
+        // Knapper under teksten
+        javafx.scene.layout.HBox buttons = new javafx.scene.layout.HBox(20, playAgain, backBtn);
+        buttons.setAlignment(javafx.geometry.Pos.CENTER);
+        buttons.setTranslateY(gameView.getCanvas().getHeight() / 2 + 20);
+        root.getChildren().add(buttons);
     }
 
     private void startGameLoop() {
@@ -261,6 +313,9 @@ public class GameController {
                 player1.render(gameView.getGraphicsContext());
                 player2.render(gameView.getGraphicsContext());
                 renderHUD(gameView.getGraphicsContext());
+
+                // Tjek om spillet er slut
+                checkWinCondition();
             }
         };
         gameLoop.start();
