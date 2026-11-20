@@ -1,6 +1,7 @@
 com/example/App.class
 com/example/SettingsController.class
 com/example/game/CollisionDetection.class
+com/example/game/CollisionDetection$CollisionPair.class
 com/example/entities/PowerUp.class
 com/example/entities/Explosion.class
 module-info.class

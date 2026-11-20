@@ -227,7 +227,7 @@ public class GameController {
             try { App.setRoot("mainmenu"); } catch (IOException ex) { ex.printStackTrace(); }
         });
 
-        // Knapper under teksten
+        // Placer knapper under teksten
         javafx.scene.layout.HBox buttons = new javafx.scene.layout.HBox(20, playAgain, backBtn);
         buttons.setAlignment(javafx.geometry.Pos.CENTER);
         buttons.setTranslateY(gameView.getCanvas().getHeight() / 2 + 20);
@@ -258,12 +258,18 @@ public class GameController {
                 // Opdater eksplosioner
                 for (Explosion exp : explosions) exp.update(dt);
 
-                // Eksplosioner interagerer med spillere og bomber
-                for (Explosion exp : explosions) {
-                    if (CollisionDetection.aabb(exp, player1)) exp.interact(player1);
-                    if (CollisionDetection.aabb(exp, player2)) exp.interact(player2);
-                    for (Bomb bomb : bombs)
-                        if (CollisionDetection.aabb(exp, bomb)) exp.interact(bomb);
+                // Detects kollisioner concurrent via CollisionDetection
+                List<Entity> targets = new ArrayList<>();
+                targets.add(player1);
+                targets.add(player2);
+                targets.addAll(bombs);
+
+                try {
+                    for (CollisionDetection.CollisionPair pair :
+                            CollisionDetection.findCollisionsConcurrently(explosions, targets))
+                        pair.a().interact(pair.b());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
                 explosions.removeIf(Explosion::isExpired);
 
@@ -323,6 +329,7 @@ public class GameController {
 
     public void goBack() throws IOException {
         gameLoop.stop();
+        CollisionDetection.shutdown();
         App.setRoot("mainmenu");
     }
 
