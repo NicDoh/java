@@ -12,11 +12,7 @@ public class Player extends Entity {
     private double speed;
     private boolean movingUp, movingDown, movingLeft, movingRight;
     private boolean placingBomb;
-    // Forhindrer at spilleren mister flere liv fra samme eksplosion
-    private boolean hitThisFrame;
     private int explosionRange = 2;
-    public int getExplosionRange() { return explosionRange; }
-    public void increaseExplosionRange() { explosionRange++; }
 
     public Player(double x, double y, double width, double height, Image image, int lives, int maxBombs, double speed) {
         super(x, y, width, height, image);
@@ -37,39 +33,29 @@ public class Player extends Entity {
     }
 
     public void moveX(double dt) {
-        if (movingLeft)  x -= speed * dt;
-        if (movingRight) x += speed * dt;
+        if (movingLeft)  setX(getPositionX() - speed * dt);
+        if (movingRight) setX(getPositionX() + speed * dt);
     }
 
     public void moveY(double dt) {
-        if (movingUp)   y -= speed * dt;
-        if (movingDown) y += speed * dt;
+        if (movingUp)   setY(getPositionY() - speed * dt);
+        if (movingDown) setY(getPositionY() + speed * dt);
     }
 
     @Override
-    public void update(double dt) {
-        hitThisFrame = false;
-    }
+    public void update(double dt) {}
 
     @Override
     public void render(GraphicsContext gc) {
-        gc.drawImage(image, x, y, width, height);
+        gc.drawImage(getImage(), getPositionX(), getPositionY(), getWidth(), getHeight());
     }
 
-    public boolean isDead() {
-        return lives <= 0;
-    }
+    public boolean isDead() { return lives <= 0; }
 
-    public void loseLife() {
-        if (!hitThisFrame) {
-            lives--;
-            hitThisFrame = true;
-        }
-    }
+    // Trækker ét liv fra spilleren
+    public void loseLife() { lives--; }
 
-    public boolean canPlaceBomb() {
-        return activeBombs < maxBombs;
-    }
+    public boolean canPlaceBomb() { return activeBombs < maxBombs; }
 
     public void incrementActiveBombs() { activeBombs++; }
     public void decrementActiveBombs() { activeBombs--; }
@@ -87,4 +73,6 @@ public class Player extends Entity {
     public void setMaxBombs(int maxBombs) { this.maxBombs = maxBombs; }
     public void addLife() { lives++; }
     public int getMaxBombs() { return maxBombs; }
+    public int getExplosionRange() { return explosionRange; }
+    public void increaseExplosionRange() { explosionRange++; }
 }

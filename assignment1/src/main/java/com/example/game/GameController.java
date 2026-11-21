@@ -329,7 +329,6 @@ public class GameController {
 
     public void goBack() throws IOException {
         gameLoop.stop();
-        CollisionDetection.shutdown();
         App.setRoot("mainmenu");
     }
 

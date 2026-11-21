@@ -10,6 +10,7 @@ com/example/game/GameModel.class
 com/example/entities/DestructibleWall.class
 com/example/ChatController.class
 com/example/entities/Player.class
+com/example/entities/StaticEntity.class
 com/example/game/GameView.class
 com/example/entities/Entity.class
 com/example/MainMenuController.class

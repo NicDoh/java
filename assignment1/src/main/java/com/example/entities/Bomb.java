@@ -28,7 +28,7 @@ public class Bomb extends Entity {
     public void interact(Entity entity) {
         if (entity instanceof Explosion) exploded = true;
     }
-    
+
     @Override
     public void update(double dt) {
         if (exploded) return;
@@ -38,15 +38,15 @@ public class Bomb extends Entity {
     }
 
     private boolean overlapsOwner() {
-        return owner.getPositionX() + owner.getWidth()  > x &&
-               x + width  > owner.getPositionX() &&
-               owner.getPositionY() + owner.getHeight() > y &&
-               y + height > owner.getPositionY();
+        return owner.getPositionX() + owner.getWidth()  > getPositionX() &&
+               getPositionX() + getWidth()  > owner.getPositionX() &&
+               owner.getPositionY() + owner.getHeight() > getPositionY() &&
+               getPositionY() + getHeight() > owner.getPositionY();
     }
 
     @Override
     public void render(GraphicsContext gc) {
-        if (!exploded) gc.drawImage(image, x, y, width, height);
+        if (!exploded) gc.drawImage(getImage(), getPositionX(), getPositionY(), getWidth(), getHeight());
     }
 
     public boolean isExploded() { return exploded; }

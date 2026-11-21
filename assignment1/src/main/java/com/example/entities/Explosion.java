@@ -37,7 +37,7 @@ public class Explosion extends Entity {
 
     @Override
     public void render(GraphicsContext gc) {
-        if (!expired) gc.drawImage(image, x, y, width, height);
+        if (!expired) gc.drawImage(getImage(), getPositionX(), getPositionY(), getWidth(), getHeight());
     }
 
     public boolean isExpired() { return expired; }

@@ -5,9 +5,9 @@ import javafx.scene.image.Image;
 
 // Abstrakt base for alle game entities
 public abstract class Entity {
-    protected double x, y;
-    protected double width, height;
-    protected Image image;
+    private double x, y;
+    private double width, height;
+    private Image image;
 
     public Entity(double x, double y, double width, double height, Image image) {
         this.x = x;
@@ -21,6 +21,7 @@ public abstract class Entity {
     public double getPositionY() { return y; }
     public double getWidth() { return width; }
     public double getHeight() { return height; }
+    public Image getImage() { return image; }
 
     // Bestemmer om denne entity blokerer bevægelse
     public abstract boolean isOccupying();

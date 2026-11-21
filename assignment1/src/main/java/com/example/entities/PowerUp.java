@@ -31,6 +31,6 @@ public abstract class PowerUp extends Entity {
 
     @Override
     public void render(GraphicsContext gc) {
-        if (!collected) gc.drawImage(image, x, y, width, height);
+        if (!collected) gc.drawImage(getImage(), getPositionX(), getPositionY(), getWidth(), getHeight());
     }
 }

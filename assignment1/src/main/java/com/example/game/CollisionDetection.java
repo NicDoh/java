@@ -40,8 +40,6 @@ public class CollisionDetection {
         return results;
     }
 
-    public static void shutdown() { executor.shutdown(); }
-
     // Par af entities der kolliderer
     public record CollisionPair(Entity a, Entity b) {}
 }

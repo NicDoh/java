@@ -4,7 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 // Destructible wall - blokerer bevægelse, men kan ødelægges af eksplosioner
-public class DestructibleWall extends Entity {
+public class DestructibleWall extends StaticEntity {
 
     private boolean destroyed = false;
 
@@ -31,12 +31,9 @@ public class DestructibleWall extends Entity {
     }
 
     @Override
-    public void update(double dt) {}
-
-    @Override
     public void render(GraphicsContext gc) {
         if (!destroyed) {
-            gc.drawImage(image, x, y, width, height);
+            gc.drawImage(getImage(), getPositionX(), getPositionY(), getWidth(), getHeight());
         }
     }
 }
