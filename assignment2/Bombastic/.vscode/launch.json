@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Bombastic",
+            "request": "launch",
+            "mainClass": "app.App",
+            "vmArgs": "--module-path /Users/nicolai/Desktop/kt/Java/javafx-sdk-27.0.1/lib --add-modules javafx.controls,javafx.graphics"
+        }
+    ]
+}
